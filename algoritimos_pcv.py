@@ -1,4 +1,3 @@
-import random
 import numpy as np
 import time
 
@@ -99,12 +98,15 @@ def cheapestInsertion(distance_matrix):
     return tour_list, total_distance
 
 
-distance_matrix = [[0, 2, 1, 4, 9, 1],
-                   [2, 0, 5, 9, 7, 2],
-                   [1, 5, 0, 3, 8, 6],
-                   [4, 9, 3, 0, 2, 6],
-                   [9, 7, 8, 2, 0, 2],
-                   [1, 2, 6, 6, 2, 0]]
+# distance_matrix = [[0, 2, 1, 4, 9, 1],
+#                    [2, 0, 5, 9, 7, 2],
+#                    [1, 5, 0, 3, 8, 6],
+#                    [4, 9, 3, 0, 2, 6],
+#                    [9, 7, 8, 2, 0, 2],
+#                    [1, 2, 6, 6, 2, 0]]
+
+n_cities = int(input("Enter the number of cities: "))
+distance_matrix = np.random.randint(1, 10, size=(n_cities, n_cities))
 
 start_time = time.time()
 print("Nearest Neighbour")
