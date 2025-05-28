@@ -38,11 +38,43 @@ def select_parent(population):
     return new[0]
 
 # crossover()
-def crossover(parent1, parent2):
-    k = random.randint(0, N-1)
-    child = parent1[0][:k] + parent2[0][k:]
+def crossover_n_pontos(parent1, parent2, n_pontos):
+    ks = []
+
+    assert n_pontos < len(parent1[0])
+    # pegar n_pontos
+    while len(ks) != n_pontos:
+        k = random.randint(0, N-1)
+        if k not in ks and (sum(ks) + k) < (len(parent1[0])-1):
+            ks.append(k)
+
+    # print(ks)
+    # print(parent1[0])
+    child = []
+    
+    for i, k in enumerate(ks):
+        if i == 0:
+            child.extend(parent1[0][:k])
+        else:
+            parent_atual = parent1 if i % 2 == 0 else parent2
+            child.extend(parent_atual[0][ks[-1]:k])
+
+    # print(child)
+    # print(parent1[0], parent2[0])
+    # print(child)
+    # print(len(child))
+    # child = parent1[0][:k] + parent2[0][k:]
     # print(parent1, parent2)
     return (child, evaluate_fitness(child))
+
+def crossover(parent1, parent2):
+    k = random.randint(0, N-1)
+
+    child = parent1[0][:k] + parent2[0][k:] 
+    # print(len(child))
+    # print(parent1, parent2)
+    return (child, evaluate_fitness(child))
+
 
 def mutate(individual, mutation_rate):
     genes, _ = individual
@@ -56,7 +88,7 @@ def evolve_population(population, mutation_rate):
     while len(new_generation) < population_size:
         parent1 = select_parent(population)
         parent2 = select_parent(population)
-        child = crossover(parent1, parent2)
+        child = crossover_n_pontos(parent1, parent2, 3)
         child = mutate(child, mutation_rate)
         new_generation.append(child)
     new_generation.sort(key=lambda x: x[1], reverse=True)
