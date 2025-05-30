@@ -6,12 +6,13 @@ N = 8
 population_size = 1000
 max_generations = 2000
 mutation_rate = 0.05
-visualize_every = 1
+visualize_every = 50
 max_fitness = 28
 
 pop_size_options = [10, 100, 500, 1000, 2000]
 max_generations_options = [1000]
 mutation_rate_options = [0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1]
+n_pontos_crossover = [1, 2, 3, 4]
 
 
 def create_individual():
@@ -38,33 +39,22 @@ def select_parent(population):
     return new[0]
 
 # crossover()
-def crossover_n_pontos(parent1, parent2, n_pontos):
-    ks = []
+def crossover_n_pontos(parent1, parent2, n_points):
+    assert n_points <= len(parent1[0]) and n_points >= 0
 
-    assert n_pontos < len(parent1[0])
-    # pegar n_pontos
-    while len(ks) != n_pontos:
-        k = random.randint(0, N-1)
-        if k not in ks and (sum(ks) + k) < (len(parent1[0])-1):
-            ks.append(k)
+    ks = sorted(random.sample(range(1, N), n_points))
+    ks.append(N)
 
-    # print(ks)
-    # print(parent1[0])
     child = []
-    
-    for i, k in enumerate(ks):
-        if i == 0:
-            child.extend(parent1[0][:k])
-        else:
-            parent_atual = parent1 if i % 2 == 0 else parent2
-            child.extend(parent_atual[0][ks[-1]:k])
+    start = 0
 
-    # print(child)
-    # print(parent1[0], parent2[0])
-    # print(child)
-    # print(len(child))
-    # child = parent1[0][:k] + parent2[0][k:]
-    # print(parent1, parent2)
+    for i, k in enumerate(ks):
+        if i%2 == 0:
+            child.extend(parent2[0][start:k])
+        else:
+            child.extend(parent1[0][start:k])
+        start = k
+
     return (child, evaluate_fitness(child))
 
 def crossover(parent1, parent2):
@@ -83,12 +73,12 @@ def mutate(individual, mutation_rate):
         genes[i] = random.randint(0, N-1)
     return (genes, evaluate_fitness(genes))
 
-def evolve_population(population, mutation_rate):
+def evolve_population(population, mutation_rate, n_pontos):
     new_generation = population[:10]
     while len(new_generation) < population_size:
         parent1 = select_parent(population)
         parent2 = select_parent(population)
-        child = crossover_n_pontos(parent1, parent2, 3)
+        child = crossover_n_pontos(parent1, parent2, n_pontos)
         child = mutate(child, mutation_rate)
         new_generation.append(child)
     new_generation.sort(key=lambda x: x[1], reverse=True)
@@ -128,11 +118,11 @@ def plot_board(genes, generation, fitness, N):
     # Exibir o gráfico
     plt.show()
 
-def run_genetic_algorithm(max_generations, population_size, mutation_rate):
+def run_genetic_algorithm(max_generations, population_size, mutation_rate, n_pontos):
     population = create_population(population_size)
     
     for generation in range(1, max_generations+1):
-        # print(population[0])
+        print("Generation", generation)
         best_indivudial = population[0]
         if best_indivudial[1] >= 28:
             print("Solução encontrada na geração:", generation)
@@ -143,7 +133,7 @@ def run_genetic_algorithm(max_generations, population_size, mutation_rate):
             print("Generation", generation, "Best fitness", best_indivudial[1])
             # plot_board(best_indivudial[0], generation, best_indivudial[1], N)
 
-        population = evolve_population(population, mutation_rate=mutation_rate)
+        population = evolve_population(population, mutation_rate=mutation_rate, n_pontos=n_pontos)
         # print(population)
 
     print("Não foi encontrada uma soluçãoo perfeita")
@@ -151,12 +141,13 @@ def run_genetic_algorithm(max_generations, population_size, mutation_rate):
     return "Solução não encontrada"
 
 dados = []
-for pop in pop_size_options:
-    for mut_rate in mutation_rate_options:
-        for max_gen in max_generations_options:
-            r = run_genetic_algorithm(max_gen, pop, mut_rate)
-            dados.append([pop, mut_rate, max_gen, r])
+for n_pontos in n_pontos_crossover:
+    for pop in pop_size_options:
+        for mut_rate in mutation_rate_options:
+            for max_gen in max_generations_options:
+                r = run_genetic_algorithm(max_gen, pop, mut_rate, n_pontos)
+                dados.append([pop, n_pontos, mut_rate, max_gen, r])
 
-df = pd.DataFrame(dados, columns=["Population Size", "Mutation Rate", 'Max Generations', "Resultado"])
+df = pd.DataFrame(dados, columns=["Population Size", "N Pontos Crossover", "Mutation Rate", 'Max Generations', "Resultado"])
 
 df.to_excel('resultados.xlsx', index=False)
